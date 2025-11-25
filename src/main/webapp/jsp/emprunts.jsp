@@ -1,0 +1,90 @@
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ page import="java.util.List, model.Emprunt" %>
+
+<%
+    // Secured session check
+    if (session == null || session.getAttribute("user") == null) {
+        response.sendRedirect(request.getContextPath() + "/jsp/login.jsp");
+        return;
+    }
+
+    List<Emprunt> emprunts = (List<Emprunt>) request.getAttribute("emprunts");
+    String message = (String) request.getAttribute("message");
+%>
+
+<html>
+<head>
+    <title>Gestion des emprunts</title>
+</head>
+<body>
+
+<h2>Gestion des emprunts</h2>
+
+<!-- Message feedback -->
+<% if (message != null && !message.isEmpty()) { %>
+    <p style="padding:10px; color:<%= message.contains("Erreur") ? "red" : "green" %>;">
+        <%= message %>
+    </p>
+<% } %>
+
+<!-- Create a new emprunt -->
+<form action="<%= request.getContextPath() %>/EmpruntServlet" method="post">
+    <label>ID Réservation :</label>
+    <input type="number" name="idRes" required>
+    <button type="submit">Créer emprunt</button>
+</form>
+
+<br>
+
+<table border="1" cellpadding="5" cellspacing="0">
+<tr style="background:#eee;">
+    <th>ID Emprunt</th>
+    <th>Personne</th>
+    <th>Livre</th>
+    <th>Date emprunt</th>
+    <th>Date retour</th>
+    <th>Actions</th>
+</tr>
+
+<%
+if (emprunts != null) {
+    for (Emprunt e : emprunts) {
+%>
+<tr>
+    <td><%= e.getIdEmp() %></td>
+
+    <td>
+        <%= (e.getNomPrenom() != null && !e.getNomPrenom().isEmpty() ? e.getNomPrenom() : "Inconnu") %>
+        <br>(ID Rés.: <%= e.getIdRes() %>)
+    </td>
+
+    <td><%= (e.getTitreLivre() != null ? e.getTitreLivre() : "Livre supprimé") %></td>
+
+    <td><%= e.getDateEmp() %></td>
+
+    <td>
+        <%= (e.getDateRetour() != null ? e.getDateRetour() : "<span style='color:red;'>Non retourné</span>") %>
+    </td>
+
+    <td>
+        <% if (e.getDateRetour() == null) { %>
+            <a href="<%= request.getContextPath() %>/EmpruntServlet?action=retourner&id=<%= e.getIdEmp() %>"
+               onclick="return confirm('Confirmer le retour du livre ?');">
+                Retourner
+            </a><br>
+        <% } %>
+
+        <a href="<%= request.getContextPath() %>/EmpruntServlet?action=delete&id=<%= e.getIdEmp() %>"
+           onclick="return confirm('Supprimer cet emprunt ?');">
+           Supprimer
+        </a>
+    </td>
+</tr>
+<%
+    }
+}
+%>
+</table>
+
+</body>
+</html>
