@@ -1,4 +1,5 @@
 package servlet;
+
 import java.io.IOException;
 import java.sql.*;
 import javax.servlet.ServletException;
@@ -14,33 +15,52 @@ public class LoginServlet extends HttpServlet {
         String pass = request.getParameter("pass");
 
         try {
-            // Connexion à la base
             Class.forName("com.mysql.cj.jdbc.Driver");
-            Connection con = DriverManager.getConnection(
-                    "jdbc:mysql://localhost:3306/biblio", "root", ""); // user/pass WAMP
+            try (Connection con = DriverManager.getConnection(
+                    "jdbc:mysql://localhost:3306/biblio", "root", "")) {
 
-            String sql = "SELECT * FROM personne WHERE LOGIN=? AND PASS=?";
-            PreparedStatement ps = con.prepareStatement(sql);
-            ps.setString(1, login);
-            ps.setString(2, pass);
+                String sql = "SELECT * FROM personne WHERE LOGIN=? AND PASS=?";
+                try (PreparedStatement ps = con.prepareStatement(sql)) {
+                    ps.setString(1, login);
+                    ps.setString(2, pass);
 
-            ResultSet rs = ps.executeQuery();
+                    try (ResultSet rs = ps.executeQuery()) {
 
-            if(rs.next()) {
-                // Utilisateur trouvé
-                HttpSession session = request.getSession();
-                session.setAttribute("user", rs.getString("NOM"));
-                response.sendRedirect(request.getContextPath() + "/jsp/home.jsp"); // page d'accueil après login
-            } else {
-                // Utilisateur non trouvé
-                response.sendRedirect(request.getContextPath() + "/jsp/login.jsp?error=1");
+                        if (rs.next()) {
+
+                            HttpSession session = request.getSession();
+
+                            // Store username & type
+                            session.setAttribute("user", rs.getString("NOM"));
+                            session.setAttribute("typeUtilisateur", rs.getString("typeUtilisateur"));
+
+                            // ⭐ IMPORTANT FIX: store the user ID for reservations
+                            session.setAttribute("userId", rs.getInt("IDPERS"));
+
+                            String type = rs.getString("typeUtilisateur");
+
+                            // Redirect based on role
+                            if ("admin".equals(type)) {
+                                response.sendRedirect(request.getContextPath() + "/jsp/dashboardAdmin.jsp");
+
+                            } else if ("bibliothecaire".equals(type)) {
+                                response.sendRedirect(request.getContextPath() + "/jsp/home.jsp");
+
+                            } else if ("etudiant".equals(type) || "enseignant".equals(type)) {
+                                response.sendRedirect(request.getContextPath() + "/LivreServlet");
+
+                            } else {
+                                response.sendRedirect(request.getContextPath() + "/jsp/login.jsp?error=1");
+                            }
+
+                        } else {
+                            response.sendRedirect(request.getContextPath() + "/jsp/login.jsp?error=1");
+                        }
+                    }
+                }
             }
 
-            rs.close();
-            ps.close();
-            con.close();
-
-        } catch(Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
             response.sendRedirect(request.getContextPath() + "/jsp/login.jsp?error=1");
         }

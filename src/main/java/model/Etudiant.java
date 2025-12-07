@@ -9,7 +9,11 @@ public class Etudiant {
     private String adresse;
     private String telephone;
     private String classe;
+    private String login;
+    private String pass;
 
+    
+    
     public int getIdPers() { return idPers; }
     public void setIdPers(int idPers) { this.idPers = idPers; }
 
@@ -30,4 +34,11 @@ public class Etudiant {
 
     public String getClasse() { return classe; }
     public void setClasse(String classe) { this.classe = classe; }
+    
+
+public String getLogin() { return login; }
+public void setLogin(String login) { this.login = login; }
+
+public String getPass() { return pass; }
+public void setPass(String pass) { this.pass = pass; }
 }

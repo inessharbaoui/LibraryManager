@@ -15,6 +15,13 @@
 <html>
 <head>
     <title>Gestion des emprunts</title>
+    <style>
+        table { border-collapse: collapse; width: 100%; }
+        th, td { padding: 8px; border: 1px solid #ccc; text-align: left; }
+        th { background-color: #eee; }
+        .red { color: red; }
+        .green { color: green; }
+    </style>
 </head>
 <body>
 
@@ -28,16 +35,14 @@
 <% } %>
 
 <!-- Create a new emprunt -->
-<form action="<%= request.getContextPath() %>/EmpruntServlet" method="post">
+<form action="<%= request.getContextPath() %>/EmpruntServlet" method="post" style="margin-bottom:20px;">
     <label>ID Réservation :</label>
     <input type="number" name="idRes" required>
     <button type="submit">Créer emprunt</button>
 </form>
 
-<br>
-
-<table border="1" cellpadding="5" cellspacing="0">
-<tr style="background:#eee;">
+<table>
+<tr>
     <th>ID Emprunt</th>
     <th>Personne</th>
     <th>Livre</th>
@@ -47,44 +52,43 @@
 </tr>
 
 <%
-if (emprunts != null) {
+if (emprunts != null && !emprunts.isEmpty()) {
     for (Emprunt e : emprunts) {
 %>
 <tr>
     <td><%= e.getIdEmp() %></td>
-
     <td>
         <%= (e.getNomPrenom() != null && !e.getNomPrenom().isEmpty() ? e.getNomPrenom() : "Inconnu") %>
         <br>(ID Rés.: <%= e.getIdRes() %>)
     </td>
-
     <td><%= (e.getTitreLivre() != null ? e.getTitreLivre() : "Livre supprimé") %></td>
-
     <td><%= e.getDateEmp() %></td>
-
     <td>
-        <%= (e.getDateRetour() != null ? e.getDateRetour() : "<span style='color:red;'>Non retourné</span>") %>
+        <%= (e.getDateRetour() != null ? e.getDateRetour() : "<span class='red'>Non retourné</span>") %>
     </td>
-
     <td>
         <% if (e.getDateRetour() == null) { %>
             <a href="<%= request.getContextPath() %>/EmpruntServlet?action=retourner&id=<%= e.getIdEmp() %>"
-               onclick="return confirm('Confirmer le retour du livre ?');">
-                Retourner
-            </a><br>
+               onclick="return confirm('Confirmer le retour du livre ?');">Retourner</a><br>
         <% } %>
-
         <a href="<%= request.getContextPath() %>/EmpruntServlet?action=delete&id=<%= e.getIdEmp() %>"
-           onclick="return confirm('Supprimer cet emprunt ?');">
-           Supprimer
-        </a>
+           onclick="return confirm('Supprimer cet emprunt ?');">Supprimer</a>
     </td>
 </tr>
 <%
     }
+} else {
+%>
+<tr>
+    <td colspan="6" style="text-align:center;">Aucun emprunt trouvé</td>
+</tr>
+<%
 }
 %>
 </table>
+
+<br/>
+<a href="<%= request.getContextPath() %>/jsp/home.jsp">Retour à l'accueil</a>
 
 </body>
 </html>

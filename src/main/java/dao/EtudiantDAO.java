@@ -38,13 +38,17 @@ public class EtudiantDAO {
 
     // AJOUTER
     public boolean addEtudiant(Etudiant e) throws SQLException {
-        String sqlP = "INSERT INTO personne (NOM, PRENOM, EMAIL, ADRESSE, TELEPHONE) VALUES (?, ?, ?, ?, ?)";
-        try (PreparedStatement ps = conn.prepareStatement(sqlP, Statement.RETURN_GENERATED_KEYS)) {
+    	String sqlP = "INSERT INTO personne (NOM, PRENOM, EMAIL, ADRESSE, TELEPHONE, LOGIN, PASS, typeUtilisateur) " +
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+    	try (PreparedStatement ps = conn.prepareStatement(sqlP, Statement.RETURN_GENERATED_KEYS)) {
             ps.setString(1, e.getNom());
             ps.setString(2, e.getPrenom());
             ps.setString(3, e.getEmail());
             ps.setString(4, e.getAdresse());
             ps.setString(5, e.getTelephone());
+            ps.setString(6, e.getLogin());
+            ps.setString(7, e.getPass());
+            ps.setString(8, "etudiant");  // <-- add the type here
 
             int affectedRows = ps.executeUpdate();
             if (affectedRows == 0) {

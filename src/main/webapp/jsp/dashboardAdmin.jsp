@@ -15,14 +15,15 @@
         <a href="<%= request.getContextPath() %>/LogoutServlet">Se déconnecter</a>
     </p>
     <p>
-        <a href="<%= request.getContextPath() %>/LivreServlet">Voir la liste des livres</a>
+<input type="button" value="Gérer les livres" 
+       onclick="window.location.href='<%= request.getContextPath() %>/LivreServlet'"/>
     </p>
 
-<input type="button" value="Voir les étudiants" 
+<input type="button" value="gerer  les étudiants" 
            onclick="window.location.href='<%= request.getContextPath() %>/EtudiantServlet'"/>
            
            
-    <input type="button" value="Voir les enseignants" 
+    <input type="button" value="gerer  les enseignants" 
            onclick="window.location.href='<%= request.getContextPath() %>/EnseignantServlet'"/>
            
          

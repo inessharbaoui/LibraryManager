@@ -6,9 +6,10 @@ public class Reservation {
     private int idRes;
     private String isbn;
     private int idPers;
-    private String nomPrenom; // full name of student or teacher
-    private String titreLivre; // book title
+    private String nomPrenom;
+    private String titreLivre;
     private Date dateRes;
+    private String status;
 
     public int getIdRes() { return idRes; }
     public void setIdRes(int idRes) { this.idRes = idRes; }
@@ -27,4 +28,7 @@ public class Reservation {
 
     public Date getDateRes() { return dateRes; }
     public void setDateRes(Date dateRes) { this.dateRes = dateRes; }
+
+    public String getStatus() { return status; }
+    public void setStatus(String status) { this.status = status; }
 }

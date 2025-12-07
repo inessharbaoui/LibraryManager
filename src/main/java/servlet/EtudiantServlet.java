@@ -27,14 +27,24 @@ public class EtudiantServlet extends HttpServlet {
             request.getSession().removeAttribute("message");
         }
 
+        // Get user type from session
+        String typeUtilisateur = (String) request.getSession().getAttribute("typeUtilisateur");
+
         try (Connection conn = DBConnection.getConnection()) {
             EtudiantDAO dao = new EtudiantDAO(conn);
 
-            // RECHERCHE
+            // SEARCH
             if (search != null && !search.isEmpty()) {
                 List<Etudiant> res = dao.search(search);
                 request.setAttribute("etudiants", res);
-                request.getRequestDispatcher("/jsp/etudiants.jsp").forward(request, response);
+
+                if ("administrateur".equals(typeUtilisateur)) {
+                    request.getRequestDispatcher("/jsp/etudiants.jsp").forward(request, response);
+                } else if ("bibliothecaire".equals(typeUtilisateur)) {
+                    request.getRequestDispatcher("/jsp/voirEtudiants.jsp").forward(request, response);
+                } else {
+                    response.sendRedirect(request.getContextPath() + "/jsp/home.jsp");
+                }
                 return;
             }
 
@@ -49,19 +59,24 @@ public class EtudiantServlet extends HttpServlet {
             if ("delete".equals(action)) {
                 int id = Integer.parseInt(request.getParameter("id"));
                 boolean deleted = dao.deleteEtudiant(id);
-                if (deleted) {
-                    request.getSession().setAttribute("message", "Supprimé avec succès !");
-                } else {
-                    request.getSession().setAttribute("message", "Erreur lors de la suppression !");
-                }
+                request.getSession().setAttribute("message",
+                        deleted ? "Supprimé avec succès !" : "Erreur lors de la suppression !");
                 response.sendRedirect("EtudiantServlet");
                 return;
             }
 
-            // LISTER
+            // LIST ALL
             List<Etudiant> list = dao.getAllEtudiants();
             request.setAttribute("etudiants", list);
-            request.getRequestDispatcher("/jsp/etudiants.jsp").forward(request, response);
+
+            // Forward based on user type
+            if ("admin".equals(typeUtilisateur)) {
+                request.getRequestDispatcher("/jsp/etudiants.jsp").forward(request, response);
+            } else if ("bibliothecaire".equals(typeUtilisateur)) {
+                request.getRequestDispatcher("/jsp/voirEtudiants.jsp").forward(request, response);
+            } else {
+                response.sendRedirect(request.getContextPath() + "/jsp/home.jsp");
+            }
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -73,7 +88,7 @@ public class EtudiantServlet extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        String message = "";
+        String message;
         boolean success = false;
 
         try (Connection conn = DBConnection.getConnection()) {
@@ -89,22 +104,22 @@ public class EtudiantServlet extends HttpServlet {
 
             String idStr = request.getParameter("idPers");
 
-            // MODIFIER
+            // UPDATE
             if (idStr != null && !idStr.isEmpty()) {
                 e.setIdPers(Integer.parseInt(idStr));
                 success = dao.updateEtudiant(e);
                 message = success ? "Modifié avec succès !" : "Erreur lors de la modification.";
-            }
-            // AJOUTER
+            } 
+            // ADD
             else {
                 success = dao.addEtudiant(e);
                 message = success ? "Ajouté avec succès !" : "Erreur lors de l'ajout.";
             }
 
         } catch (Exception ex) {
+            ex.printStackTrace();
             success = false;
             message = "Erreur : " + ex.getMessage();
-            ex.printStackTrace();
         }
 
         request.getSession().setAttribute("message", message);

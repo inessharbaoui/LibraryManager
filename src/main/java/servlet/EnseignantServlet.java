@@ -27,14 +27,24 @@ public class EnseignantServlet extends HttpServlet {
             request.getSession().removeAttribute("message");
         }
 
+        // Get user type from session
+        String typeUtilisateur = (String) request.getSession().getAttribute("typeUtilisateur");
+
         try (Connection conn = DBConnection.getConnection()) {
             EnseignantDAO dao = new EnseignantDAO(conn);
 
-            // RECHERCHE
+            // SEARCH
             if (search != null && !search.isEmpty()) {
                 List<Enseignant> res = dao.search(search);
                 request.setAttribute("enseignants", res);
-                request.getRequestDispatcher("/jsp/enseignants.jsp").forward(request, response);
+
+                if ("administrateur".equals(typeUtilisateur)) {
+                    request.getRequestDispatcher("/jsp/enseignants.jsp").forward(request, response);
+                } else if ("bibliothecaire".equals(typeUtilisateur)) {
+                    request.getRequestDispatcher("/jsp/voirEnseignants.jsp").forward(request, response);
+                } else {
+                    response.sendRedirect(request.getContextPath() + "/jsp/home.jsp");
+                }
                 return;
             }
 
@@ -55,10 +65,18 @@ public class EnseignantServlet extends HttpServlet {
                 return;
             }
 
-            // LISTER
+            // LIST ALL
             List<Enseignant> list = dao.getAllEnseignants();
             request.setAttribute("enseignants", list);
-            request.getRequestDispatcher("/jsp/enseignants.jsp").forward(request, response);
+
+            // Forward based on user type
+            if ("admin".equals(typeUtilisateur)) {
+                request.getRequestDispatcher("/jsp/enseignants.jsp").forward(request, response);
+            } else if ("bibliothecaire".equals(typeUtilisateur)) {
+                request.getRequestDispatcher("/jsp/voirEnseignants.jsp").forward(request, response);
+            } else {
+                response.sendRedirect(request.getContextPath() + "/jsp/home.jsp");
+            }
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -70,7 +88,7 @@ public class EnseignantServlet extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        String message = "";
+        String message;
         boolean success = false;
 
         try (Connection conn = DBConnection.getConnection()) {
@@ -84,25 +102,27 @@ public class EnseignantServlet extends HttpServlet {
             e.setTelephone(request.getParameter("telephone"));
             e.setGrade(request.getParameter("grade"));
             e.setDepartement(request.getParameter("departement"));
+            e.setLogin(request.getParameter("login"));
+            e.setPass(request.getParameter("pass"));
 
             String idStr = request.getParameter("idPers");
 
-            // MODIFIER
+            // UPDATE
             if (idStr != null && !idStr.isEmpty()) {
                 e.setIdPers(Integer.parseInt(idStr));
                 success = dao.updateEnseignant(e);
                 message = success ? "Modifié avec succès !" : "Erreur lors de la modification.";
-            }
-            // AJOUTER
+            } 
+            // ADD
             else {
                 success = dao.addEnseignant(e);
                 message = success ? "Ajouté avec succès !" : "Erreur lors de l'ajout.";
             }
 
         } catch (Exception ex) {
+            ex.printStackTrace();
             success = false;
             message = "Erreur : " + ex.getMessage();
-            ex.printStackTrace();
         }
 
         request.getSession().setAttribute("message", message);

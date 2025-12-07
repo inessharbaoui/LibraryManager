@@ -1,53 +1,92 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ page import="java.util.List, model.Reservation" %>
+
 <%
+    if (session == null || session.getAttribute("user") == null) {
+        response.sendRedirect(request.getContextPath() + "/jsp/login.jsp");
+        return;
+    }
+
+    String userName = (String) session.getAttribute("user");
+    String typeUtilisateur = (String) session.getAttribute("typeUtilisateur");
+
+    if (!"bibliothecaire".equals(typeUtilisateur)) {
+        response.sendRedirect(request.getContextPath() + "/jsp/home.jsp");
+        return;
+    }
+
     List<Reservation> reservations = (List<Reservation>) request.getAttribute("reservations");
-    String message = (String) request.getAttribute("message");
+    String message = (String) session.getAttribute("message");
+    if (message != null) {
+        session.removeAttribute("message");
+    }
 %>
 
-<h2>Gestion des réservations</h2>
+<html>
+<head>
+    <title>Gestion des Réservations</title>
+</head>
+<body>
+<h2>Gestion des Réservations - Bibliothécaire</h2>
+<p>Bonjour <b><%= userName %></b> (Profil : Bibliothécaire)</p>
 
-<% if (message != null && !message.isEmpty()) { %>
-    <p style="color: <%= message.contains("Erreur") ? "red" : "green" %>;">
-        <%= message %>
-    </p>
+<% if (message != null) { %>
+    <p style="color:green;"><%= message %></p>
 <% } %>
 
-<form action="ReservationServlet" method="post">
-    ID Personne: <input type="text" name="idPers" required>
-    ISBN Livre: <input type="text" name="isbn" required>
-    <button type="submit">Réserver</button>
-</form>
-
-<br>
-
-<table border="1" cellpadding="5" cellspacing="0">
-<tr>
-    <th>ID Réservation</th>
-    <th>Personne</th>
-    <th>Livre</th>
-    <th>Date</th>
-    <th>Actions</th>
-</tr>
-
+<table border="1" cellpadding="5">
+    <tr>
+        <th>ID Réservation</th>
+        <th>Utilisateur</th>
+        <th>ISBN</th>
+        <th>Titre Livre</th>
+        <th>Date Réservation</th>
+        <th>Statut</th>
+        <th>Actions</th>
+    </tr>
 <%
-if (reservations != null) {
-    for (Reservation r : reservations) {
+    if (reservations != null && !reservations.isEmpty()) {
+        for (Reservation r : reservations) {
 %>
-<tr>
-    <td><%= r.getIdRes() %></td>
-    <td><%= (r.getNomPrenom() != null ? r.getNomPrenom() : "Inconnu") %> 
-        (ID: <%= r.getIdPers() %>)</td>
-    <td><%= (r.getTitreLivre() != null ? r.getTitreLivre() : "Livre supprimé") %> 
-        (ISBN: <%= r.getIsbn() %>)</td>
-    <td><%= r.getDateRes() %></td>
-    <td>
-        <a href="ReservationServlet?action=delete&id=<%= r.getIdRes() %>"
-           onclick="return confirm('Annuler la réservation ?')">Annuler</a>
-    </td>
-</tr>
+    <tr>
+        <td><%= r.getIdRes() %></td>
+        <td><%= r.getNomPrenom() %></td>
+        <td><%= r.getIsbn() %></td>
+        <td><%= r.getTitreLivre() %></td>
+        <td><%= r.getDateRes() %></td>
+        <td><%= r.getStatus() %></td>
+        <td>
+            <% if ("Pending".equalsIgnoreCase(r.getStatus())) { %>
+                <!-- Approve form -->
+                <form method="post" action="<%= request.getContextPath() %>/ReservationServlet" style="display:inline;">
+                    <input type="hidden" name="resId" value="<%= r.getIdRes() %>">
+                    <input type="hidden" name="action" value="approve">
+                    <input type="submit" value="Valider">
+                </form>
+                <!-- Reject form -->
+                <form method="post" action="<%= request.getContextPath() %>/ReservationServlet" style="display:inline;">
+                    <input type="hidden" name="resId" value="<%= r.getIdRes() %>">
+                    <input type="hidden" name="action" value="reject">
+                    <input type="submit" value="Refuser">
+                </form>
+            <% } else { %>
+                -
+            <% } %>
+        </td>
+    </tr>
+<%
+        }
+    } else {
+%>
+    <tr>
+        <td colspan="7">Aucune réservation trouvée</td>
+    </tr>
 <%
     }
-}
 %>
 </table>
+
+<br/>
+<a href="<%= request.getContextPath() %>/jsp/livres.jsp">Retour à la gestion des livres</a>
+</body>
+</html>

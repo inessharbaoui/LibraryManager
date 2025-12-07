@@ -9,6 +9,8 @@ public class Enseignant {
     private String telephone;
     private String grade;
     private String departement;
+    private String login;  // added
+    private String pass;   // added
 
     public int getIdPers() { return idPers; }
     public void setIdPers(int idPers) { this.idPers = idPers; }
@@ -33,4 +35,10 @@ public class Enseignant {
 
     public String getDepartement() { return departement; }
     public void setDepartement(String departement) { this.departement = departement; }
+
+    public String getLogin() { return login; }
+    public void setLogin(String login) { this.login = login; }
+
+    public String getPass() { return pass; }
+    public void setPass(String pass) { this.pass = pass; }
 }
