@@ -38,7 +38,7 @@ public class EnseignantServlet extends HttpServlet {
                 List<Enseignant> res = dao.search(search);
                 request.setAttribute("enseignants", res);
 
-                if ("administrateur".equals(typeUtilisateur)) {
+                if ("admin".equals(typeUtilisateur)) {
                     request.getRequestDispatcher("/jsp/enseignants.jsp").forward(request, response);
                 } else if ("bibliothecaire".equals(typeUtilisateur)) {
                     request.getRequestDispatcher("/jsp/voirEnseignants.jsp").forward(request, response);
